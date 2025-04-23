@@ -1,0 +1,18 @@
+Api para generar QR
+
+http://localhost:3000/generarQR/:Monto
+http://localhost:3000/generarQR/4000
+
+Api para crear un pago con tarjeta 
+http://localhost:3000/pagos/pagarConTarjeta/:idReserva
+http://localhost:3000/pagos/pagarConTarjeta/27
+
+Api para registrar pagos con QR
+http://localhost:3000/pagos/pagarConQR/:idReserva
+http://localhost:3000/pagos/pagarConQR/29
+{
+  "nombreArchivoQR": "qr_1744965555128.png",
+  "monto": "150.50",
+  "concepto": "Reserva de habitación",
+  "correoElectronico": "cliente@email.com"
+}
