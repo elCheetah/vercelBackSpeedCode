@@ -27,10 +27,11 @@ export const generarQR = async (req: Request, res: Response) => {
     // Determinar el directorio temporal dependiendo del entorno
     const tempDir =
       process.env.NODE_ENV === 'production'
-        ? '/tmp'
-        : path.join(__dirname, '../temp');
+        ? '/tmp'  // Usar el directorio temporal del sistema en producción
+        : path.join(__dirname, '../temp'); // En desarrollo, lo mantenemos en un directorio relativo
     
-    console.log('TEMP DIR:', tempDir);
+    console.log('Directorio temporal:', tempDir);
+
 
     // Asegurar que la carpeta temp exista
     if (!fs.existsSync(tempDir)) {
@@ -38,17 +39,17 @@ export const generarQR = async (req: Request, res: Response) => {
     }
 
     // Buscar si ya existe un QR para la reserva
-    const resultado = await buscarQRPorReserva(reservaId);  // Asegúrate de que esta función sea asíncrona si corresponde.
+    const resultado = await buscarQRPorReserva(reservaId);
 
     // Si es una solicitud de regeneración y el QR existe, eliminar los archivos anteriores
     if (tipo === 'regenerar' && resultado.encontrado) {
-      const rutaQR = path.join(tempDir, resultado.archivoQR || '');
-      const rutaJSON = path.join(tempDir, resultado.archivoJSON || '');
+      const rutaQRExistente = path.join(tempDir, resultado.archivoQR || '');
+      const rutaJSONExistente = path.join(tempDir, resultado.archivoJSON || '');
 
       try {
-        if (fs.existsSync(rutaQR)) fs.unlinkSync(rutaQR);
-        if (fs.existsSync(rutaJSON)) fs.unlinkSync(rutaJSON);
-        console.log(`Archivos anteriores eliminados: ${rutaQR}, ${rutaJSON}`);
+        if (fs.existsSync(rutaQRExistente)) fs.unlinkSync(rutaQRExistente);
+        if (fs.existsSync(rutaJSONExistente)) fs.unlinkSync(rutaJSONExistente);
+        console.log(`Archivos anteriores eliminados: ${rutaQRExistente}, ${rutaJSONExistente}`);
       } catch (err) {
         console.error('Error al eliminar archivos existentes:', err);
       }
@@ -56,11 +57,11 @@ export const generarQR = async (req: Request, res: Response) => {
 
     // Si es una solicitud para crear y el QR ya existe, devolver la información
     if (tipo === 'crear' && resultado.encontrado) {
-      const rutaQR = path.join(tempDir, resultado.archivoQR || '');
+      const rutaQRExistente = path.join(tempDir, resultado.archivoQR || '');
       let base64 = '';
 
-      if (fs.existsSync(rutaQR)) {
-        const buffer = fs.readFileSync(rutaQR);
+      if (fs.existsSync(rutaQRExistente)) {
+        const buffer = fs.readFileSync(rutaQRExistente);
         base64 = buffer.toString('base64');
       }
 
@@ -80,10 +81,10 @@ export const generarQR = async (req: Request, res: Response) => {
 
     const nombreBase = `qr_${Date.now()}`;
     const archivoJson = `${nombreBase}.json`;
-    const archivoQR = `${nombreBase}.png`;
+    const archivoQRNuevo = `${nombreBase}.png`;
 
     const rutaJson = path.join(tempDir, archivoJson);
-    const rutaQR = path.join(tempDir, archivoQR);
+    const rutaQR = path.join(tempDir, archivoQRNuevo);
 
     // Guardar el archivo JSON
     fs.writeFileSync(rutaJson, JSON.stringify(datos, null, 2), 'utf-8');
@@ -110,7 +111,7 @@ export const generarQR = async (req: Request, res: Response) => {
 
     return res.json({
       mensaje: 'QR generado correctamente',
-      archivoQR: `${archivoQR}`,
+      archivoQR: `${archivoQRNuevo}`,
       archivoJSON: `${archivoJson}`,
       referencia,
       qrBase64: base64
