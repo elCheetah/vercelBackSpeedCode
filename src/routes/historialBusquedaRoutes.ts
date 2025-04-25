@@ -7,8 +7,8 @@ import {
 
 const router = Router();
 
-router.get('/:usuarioId', verUltimasBusquedas);               // Ver historial
-router.post('/:usuarioId', guardarBusqueda);                  // Guardar búsqueda
-router.get('/:usuarioId/sugerencias', sugerenciasBusqueda);   // Autocompletado
+router.get('/historial/:usuarioId', verUltimasBusquedas);
+router.post('/historial', guardarBusqueda);
+router.get('/autocomplete/:usuarioId', sugerenciasBusqueda);
 
 export default router;

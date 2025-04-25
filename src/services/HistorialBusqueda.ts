@@ -13,7 +13,11 @@ export const obtenerUltimasBusquedas = async (usuarioId: number, limite: number 
 };
 
 export const registrarBusqueda = async (usuarioId: number, termino: string, filtros?: any) => {
-  const terminoNormalizado = termino.toLowerCase();
+  const terminoNormalizado = termino.toLowerCase().trim();
+
+  if (terminoNormalizado.length > 100) {
+    throw new Error('El término de búsqueda no debe superar los 100 caracteres.');
+  }
 
   const busquedaExistente = await prisma.historialBusqueda.findFirst({
     where: {
@@ -25,9 +29,7 @@ export const registrarBusqueda = async (usuarioId: number, termino: string, filt
   if (busquedaExistente) {
     return await prisma.historialBusqueda.update({
       where: { id: busquedaExistente.id },
-      data: {
-        creado_en: new Date(), // lo sube al top
-      },
+      data: { creado_en: new Date() },
     });
   } else {
     return await prisma.historialBusqueda.create({
@@ -40,20 +42,17 @@ export const registrarBusqueda = async (usuarioId: number, termino: string, filt
   }
 };
 
-export const autocompletarBusquedas = async (usuarioId: number, terminoParcial: string) => {
-  const termino = terminoParcial.toLowerCase();
-
+export const autocompletarBusquedas = async (usuarioId: number, texto: string) => {
   return await prisma.historialBusqueda.findMany({
     where: {
       usuario_idusuario: usuarioId,
       termino_busqueda: {
-        contains: termino,
-        mode: 'insensitive',
+        contains: texto.toLowerCase(),
       },
     },
     orderBy: {
       creado_en: 'desc',
     },
-    take: 10,
+    take: 5,
   });
 };
