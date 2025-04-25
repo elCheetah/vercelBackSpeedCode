@@ -9,6 +9,7 @@ export const generarQR = async (req: Request, res: Response) => {
   try {
     const { tipo, monto, idReserva } = req.params;
 
+    // Validación de parámetros
     if (!monto) {
       return res.status(400).json({ error: 'Monto obligatorio para generar QR.' });
     }
@@ -22,19 +23,24 @@ export const generarQR = async (req: Request, res: Response) => {
     }
 
     const reservaId = Number(idReserva);
+    
+    // Determinar el directorio temporal dependiendo del entorno
     const tempDir =
-    process.env.NODE_ENV === 'production'
-      ? '/tmp'
-      : path.join(__dirname, '../temp');
-  
-      console.log('TEMP DIR:', tempDir);
+      process.env.NODE_ENV === 'production'
+        ? '/tmp'
+        : path.join(__dirname, '../temp');
+    
+    console.log('TEMP DIR:', tempDir);
+
     // Asegurar que la carpeta temp exista
     if (!fs.existsSync(tempDir)) {
       fs.mkdirSync(tempDir, { recursive: true });
     }
 
-    const resultado = buscarQRPorReserva(reservaId);
+    // Buscar si ya existe un QR para la reserva
+    const resultado = await buscarQRPorReserva(reservaId);  // Asegúrate de que esta función sea asíncrona si corresponde.
 
+    // Si es una solicitud de regeneración y el QR existe, eliminar los archivos anteriores
     if (tipo === 'regenerar' && resultado.encontrado) {
       const rutaQR = path.join(tempDir, resultado.archivoQR || '');
       const rutaJSON = path.join(tempDir, resultado.archivoJSON || '');
@@ -48,6 +54,7 @@ export const generarQR = async (req: Request, res: Response) => {
       }
     }
 
+    // Si es una solicitud para crear y el QR ya existe, devolver la información
     if (tipo === 'crear' && resultado.encontrado) {
       const rutaQR = path.join(tempDir, resultado.archivoQR || '');
       let base64 = '';
@@ -66,6 +73,7 @@ export const generarQR = async (req: Request, res: Response) => {
       });
     }
 
+    // Generar nuevo código QR
     const referencia = 'QR-' + generarCodigoComprobante();
     const fecha = new Date().toISOString();
     const datos = { idReserva, referencia, monto, fecha };
@@ -108,8 +116,21 @@ export const generarQR = async (req: Request, res: Response) => {
       qrBase64: base64
     });
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error al generar QR:', error);
-    return res.status(500).json({ error: 'Error interno al generar el QR.' });
+
+    // Verificar si el error es una instancia de Error y acceder a las propiedades
+    if (error instanceof Error) {
+      return res.status(500).json({
+        error: 'Error interno al generar el QR.',
+        message: error.message,
+        stack: error.stack // Para obtener más detalles sobre el error
+      });
+    } else {
+      // En caso de que el error no sea una instancia de Error
+      return res.status(500).json({
+        error: 'Error desconocido al generar el QR.'
+      });
+    }
   }
 };
