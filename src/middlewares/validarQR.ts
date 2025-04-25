@@ -1,23 +1,20 @@
 import fs from 'fs';
 import path from 'path';
 
-// Ruta absoluta y segura para temp
-const tempDir =
-  process.env.NODE_ENV === 'production'
-    ? '/tmp' // Render o Vercel en producción
-    : path.join(process.cwd(), 'temp'); // Local dev
+// Ruta pública donde se almacenan los archivos QR y JSON
+const publicDir = path.join(process.cwd(), 'public', 'qr'); // Carpeta pública accesible
 
 export function validarQR(nombreArchivoQR: string) {
   try {
-    if (!fs.existsSync(tempDir)) {
+    if (!fs.existsSync(publicDir)) {
       return {
         valido: false,
-        errores: [`La carpeta temporal no existe: ${tempDir}`]
+        errores: [`La carpeta pública no existe: ${publicDir}`]
       };
     }
 
     const nombreBase = path.parse(nombreArchivoQR).name;
-    const rutaJson = path.join(tempDir, `${nombreBase}.json`);
+    const rutaJson = path.join(publicDir, `${nombreBase}.json`);
 
     if (!fs.existsSync(rutaJson)) {
       return {
@@ -51,17 +48,17 @@ export function validarQR(nombreArchivoQR: string) {
 
 export function buscarQRPorReserva(idReserva: number) {
   try {
-    if (!fs.existsSync(tempDir)) {
+    if (!fs.existsSync(publicDir)) {
       return {
         encontrado: false,
-        errores: [`La carpeta temporal no existe: ${tempDir}`]
+        errores: [`La carpeta pública no existe: ${publicDir}`]
       };
     }
 
-    const archivos = fs.readdirSync(tempDir).filter(file => file.endsWith('.json'));
+    const archivos = fs.readdirSync(publicDir).filter(file => file.endsWith('.json'));
 
     for (let archivo of archivos) {
-      const rutaJson = path.join(tempDir, archivo);
+      const rutaJson = path.join(publicDir, archivo);
 
       try {
         const contenido = JSON.parse(fs.readFileSync(rutaJson, 'utf-8'));

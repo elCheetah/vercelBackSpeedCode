@@ -24,15 +24,12 @@ export const generarQR = async (req: Request, res: Response) => {
 
     const reservaId = Number(idReserva);
 
-    // Ruta dinámica y segura del directorio temporal
-    const tempDir =
-      process.env.NODE_ENV === 'production'
-        ? '/tmp'
-        : path.join(process.cwd(), 'temp'); // Corregido: se usa process.cwd() para evitar ambigüedad
+    // Ruta pública donde se guardarán los archivos QR y JSON
+    const publicDir = path.join(process.cwd(), 'public', 'qr'); // Carpeta pública accesible
 
     // Crear directorio si no existe
-    if (!fs.existsSync(tempDir)) {
-      fs.mkdirSync(tempDir, { recursive: true });
+    if (!fs.existsSync(publicDir)) {
+      fs.mkdirSync(publicDir, { recursive: true });
     }
 
     // Buscar si ya existe un QR asociado a la reserva
@@ -40,8 +37,8 @@ export const generarQR = async (req: Request, res: Response) => {
 
     // Si es "regenerar", eliminar QR y JSON anteriores si existen
     if (tipo === 'regenerar' && resultado.encontrado) {
-      const rutaQRExistente = path.join(tempDir, resultado.archivoQR || '');
-      const rutaJSONExistente = path.join(tempDir, resultado.archivoJSON || '');
+      const rutaQRExistente = path.join(publicDir, resultado.archivoQR || '');
+      const rutaJSONExistente = path.join(publicDir, resultado.archivoJSON || '');
 
       try {
         if (fs.existsSync(rutaQRExistente)) fs.unlinkSync(rutaQRExistente);
@@ -54,7 +51,7 @@ export const generarQR = async (req: Request, res: Response) => {
 
     // Si es "crear" y ya existe un QR, retornar la información
     if (tipo === 'crear' && resultado.encontrado) {
-      const rutaQRExistente = path.join(tempDir, resultado.archivoQR || '');
+      const rutaQRExistente = path.join(publicDir, resultado.archivoQR || '');
       let base64 = '';
 
       if (fs.existsSync(rutaQRExistente)) {
@@ -80,8 +77,8 @@ export const generarQR = async (req: Request, res: Response) => {
     const archivoJson = `${nombreBase}.json`;
     const archivoQRNuevo = `${nombreBase}.png`;
 
-    const rutaJson = path.join(tempDir, archivoJson);
-    const rutaQR = path.join(tempDir, archivoQRNuevo);
+    const rutaJson = path.join(publicDir, archivoJson);
+    const rutaQR = path.join(publicDir, archivoQRNuevo);
 
     // Guardar datos en archivo JSON
     fs.writeFileSync(rutaJson, JSON.stringify(datos, null, 2), 'utf-8');
@@ -111,7 +108,8 @@ export const generarQR = async (req: Request, res: Response) => {
       archivoQR: archivoQRNuevo,
       archivoJSON: archivoJson,
       referencia,
-      qrBase64: base64
+      qrBase64: base64,
+      urlQR: `https://vercelbackspeedcode.onrender.com/qr/${archivoQRNuevo}` // URL pública para acceder al QR
     });
 
   } catch (error: unknown) {
