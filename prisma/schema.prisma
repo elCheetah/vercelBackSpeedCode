@@ -56,7 +56,7 @@ model Ubicacion {
 
 model Vehiculo {
   idvehiculo           Int                  @id @default(autoincrement())
-  imagen               String               @db.VarChar(50)
+  imagen               String               @db.VarChar(1024)
   marca                String               @db.VarChar(25)
   modelo               String               @db.VarChar(45)
   tarifa               Float

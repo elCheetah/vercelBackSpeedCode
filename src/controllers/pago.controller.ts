@@ -16,7 +16,7 @@ export const realizarPagoQR = async (req: Request, res: Response): Promise<any> 
       concepto,
       correoElectronico
     } = req.body;
-    const metodo = "QR";
+    
     // Validación de campos
     if (!nombreArchivoQR || !monto || !reserva_idreserva || !concepto || !correoElectronico) {
       return res.status(400).json({ error: 'Faltan campos obligatorios.' });
@@ -61,7 +61,7 @@ export const realizarPagoQR = async (req: Request, res: Response): Promise<any> 
     return res.json({
       mensaje: 'Pago QR registrado correctamente.',
       pago: resultadoPago.pago,
-      imagen: resultadoPago.imagen
+      comprobanteURL: resultadoPago.comprobanteURL
     });
 
   } catch (error) {
@@ -93,7 +93,7 @@ export const registrarPago = async (
       referencia,
       concepto
     );
-    const imagePath = await generarImagenPago(nuevoPago);
+    const imagenPago = await generarImagenPago(nuevoPago);
 
     const correoHtml = `
       <h2>Confirmación de Pago</h2>
@@ -104,13 +104,14 @@ export const registrarPago = async (
         <li>Referencia: ${referencia}</li>
         <li>Concepto: ${concepto}</li>
       </ul>
+      <p>Adjunto a este mensaje encontrará su comprobante de pago.</p>
     `;
 
     const exito = await sendEmail(
       correo,
       'Confirmación de Pago - RediBo',
       correoHtml,
-      imagePath
+      imagenPago.base64
     );
 
     if (!exito) throw new Error('Error al enviar el correo');
@@ -118,7 +119,7 @@ export const registrarPago = async (
     return {
       message: 'Pago y detalle registrados correctamente',
       pago: nuevoPago,
-      imagen: imagePath
+      comprobanteURL: `https://vercelbackspeedcode.onrender.com/cmp/${imagenPago.nombreArchivo}`
     };
 
   } catch (error) {
@@ -181,7 +182,7 @@ const metodo = "TARJETA DÉBITO";
     return res.status(200).json({
       mensaje: 'Pago con tarjeta registrado correctamente.',
       pago: resultado.pago,
-      imagen: resultado.imagen
+      comprobanteURL: resultado.comprobanteURL
     });
 
   } catch (error) {

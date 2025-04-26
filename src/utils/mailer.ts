@@ -17,7 +17,7 @@ export const sendEmail = async (
     to: string,
     subject: string,
     html: string,
-    imagePath?: string
+    imageBase64?: string
 ) => {
     try {
         const mailOptions: any = {
@@ -27,12 +27,14 @@ export const sendEmail = async (
             html,
         };
 
-        if (imagePath) {
+        if (imageBase64) {
             mailOptions.attachments = [
                 {
                     filename: 'comprobante_pago.png',
-                    path: imagePath,
-                },
+                    content: Buffer.from(imageBase64, 'base64'),
+                    encoding: 'base64',
+                    contentType: 'image/png'
+                }
             ];
         }
 
@@ -44,3 +46,4 @@ export const sendEmail = async (
         return false;
     }
 };
+

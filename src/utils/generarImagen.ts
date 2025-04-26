@@ -1,41 +1,26 @@
-import { createCanvas, loadImage } from 'canvas';
+import { createCanvas } from 'canvas';
 import path from 'path';
 import fs from 'fs';
 
-export const generarImagenPago = async (pago: any): Promise<string> => {
-  const width = 800;
-  const height = 1100;
+export const generarImagenPago = async (pago: any): Promise<{ nombreArchivo: string, base64: string }> => {
+  const width = 500;
+  const height = 500;
   const canvas = createCanvas(width, height);
   const ctx = canvas.getContext('2d');
 
-  // Colores y fuentes
+  // Colores y fondo
   const colorPrimario = '#ff7f00';
   const colorSecundario = '#0077ff';
   const gris = '#333333';
-
-  // Fondo
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, width, height);
 
-  // Encabezado con fondo
+  // Header
   ctx.fillStyle = colorPrimario;
   ctx.fillRect(0, 0, width, 100);
-
-  // Título
   ctx.fillStyle = '#ffffff';
   ctx.font = 'bold 32px Arial';
-  ctx.fillText('🧾 Comprobante de Pago', 20, 60);
-
-  // Logo (opcional)
-  try {
-    const logoPath = path.join(__dirname, 'logo.png');
-    if (fs.existsSync(logoPath)) {
-      const logo = await loadImage(logoPath);
-      ctx.drawImage(logo, width - 130, 10, 100, 80);
-    }
-  } catch (e) {
-    console.warn('Logo no disponible:', e);
-  }
+  ctx.fillText('COMPROBANTE DE PAGO', 20, 60);
 
   // Línea separadora
   ctx.strokeStyle = colorSecundario;
@@ -49,7 +34,6 @@ export const generarImagenPago = async (pago: any): Promise<string> => {
   ctx.fillStyle = gris;
   ctx.font = '20px Arial';
   const fecha = new Date().toLocaleString();
-
   const detalles = [
     `📆 Fecha: ${fecha}`,
     `💳 Método de pago: ${pago.metodo_pago}`,
@@ -61,17 +45,18 @@ export const generarImagenPago = async (pago: any): Promise<string> => {
 
   let y = 150;
   for (const texto of detalles) {
+    ctx.font = texto.startsWith('📆') ? 'bold 20px Arial' : 'normal 20px Arial';
     ctx.fillText(texto, 40, y);
     y += 40;
   }
 
-  // Pie
-  ctx.fillStyle = '#666666';
+  // Footer
+  ctx.fillStyle = colorSecundario;
   ctx.font = '16px Arial';
   ctx.fillText('Gracias por su pago. Conserve este comprobante.', 40, height - 40);
 
-  // Guardar imagen
-  const tempDir = path.join(__dirname, '..', 'comprobante');
+  // Guardar en disco
+  const tempDir = path.join(process.cwd(), 'public', 'cmp');
   if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
 
   const filename = `pago_${Date.now()}.png`;
@@ -79,7 +64,7 @@ export const generarImagenPago = async (pago: any): Promise<string> => {
   const buffer = canvas.toBuffer('image/png');
   fs.writeFileSync(imagePath, buffer);
 
-  // Eliminar después de 10 minutos
+  // Programar eliminación
   setTimeout(() => {
     fs.unlink(imagePath, (err) => {
       if (err) console.error(`Error al eliminar comprobante: ${filename}`, err);
@@ -87,5 +72,12 @@ export const generarImagenPago = async (pago: any): Promise<string> => {
     });
   }, 10 * 60 * 1000);
 
-  return imagePath;
+  // Codificar a base64
+  const base64 = buffer.toString('base64');
+
+  // Devolver nombre del archivo y base64
+  return {
+    nombreArchivo: filename,
+    base64: base64
+  };
 };
