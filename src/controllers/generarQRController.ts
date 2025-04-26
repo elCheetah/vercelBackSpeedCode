@@ -101,7 +101,7 @@ export const generarQR = async (req: Request, res: Response) => {
       } catch (err) {
         console.error('Error al eliminar archivos temporales:', err);
       }
-    }, 10 * 60 * 1000); // 10 minutos
+    }, 3 * 60 * 1000); // 3 minutos
 
     return res.json({
       mensaje: 'QR generado correctamente',

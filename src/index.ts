@@ -7,6 +7,7 @@ import historialBusquedaRoutes from './routes/historialBusquedaRoutes';
 import  vehiculoRoutes  from './routes/vehiculoRoutes';
 import reservasRoutes from './routes/reservas.routes'
 
+import limpiezaRoutes from './routes/limpieza.ruta';
 const cors = require('cors');
 
 
@@ -24,9 +25,11 @@ app.use('/vehiculo', vehiculoRoutes);
 app.use('/reservas',reservasRoutes);
 
 
+app.use('/public', limpiezaRoutes); 
 
 
-app.use('/temp', express.static(path.join(process.cwd(), 'src', 'temp'), {
+// Ruta pública para comprobantes (se sirve desde public/cmp)
+app.use('/cmp', express.static(path.join(process.cwd(), 'public', 'cmp'), {
   setHeaders: (res, path) => {
     if (path.endsWith('.png')) {
       res.set('Content-Type', 'image/png');
