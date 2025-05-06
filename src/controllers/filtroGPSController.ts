@@ -1,17 +1,21 @@
 import { Request, Response } from 'express';
-import { obtenerAutosCercanos } from '../services/filtroGPSService';
+import { obtenerVehiculosCercanos } from '../services/filtroGPSService';
 
-export async function autosPorDistancia(req: Request, res: Response) {
-  try {
-    const { latitud, longitud, dkm } = req.params;
-    const lat = parseFloat(latitud);
-    const lon = parseFloat(longitud);
-    const dist = dkm ? parseFloat(dkm) : 10; // valor por defecto: 10 km
+export const getVehiculosPorDistancia = async (req: Request, res: Response) => {
+  const { lat, lng, dkm } = req.params;
 
-    const autos = await obtenerAutosCercanos(lat, lon, dist);
-    res.json(autos);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Error al buscar autos cercanos' });
+  const latNum = parseFloat(lat);
+  const lngNum = parseFloat(lng);
+  const distancia = dkm ? parseFloat(dkm) : 10; // distancia por defecto: 10 km
+
+  if (isNaN(latNum) || isNaN(lngNum) || isNaN(distancia)) {
+    return res.status(400).json({ error: 'Parámetros inválidos' });
   }
-}
+
+  try {
+    const vehiculos = await obtenerVehiculosCercanos(latNum, lngNum, distancia);
+    res.json(vehiculos);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener vehículos cercanos' });
+  }
+};

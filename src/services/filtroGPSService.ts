@@ -1,14 +1,14 @@
 import { prisma } from '../config/database';
 import { calcularDistancia } from '../utils/haversine';
 
-export async function obtenerAutosCercanos(lat: number, lon: number, dkm: number) {
+export const obtenerVehiculosCercanos = async (lat: number, lng: number, dkm: number) => {
   const vehiculos = await prisma.vehiculo.findMany({
     where: {
-      disponible: "sí",
-      estado: "activo",
+      estado: 'activo',
+      disponible: 'sí',
       ubicacion: {
         latitud: { not: null },
-        amplitud: { not: null },
+        longitud: { not: null }
       }
     },
     include: {
@@ -16,8 +16,9 @@ export async function obtenerAutosCercanos(lat: number, lon: number, dkm: number
     }
   });
 
-  return vehiculos.filter((v: { ubicacion: { latitud: number; amplitud: number; }; }) => {
-    const dist = calcularDistancia(lat, lon, v.ubicacion.latitud!, v.ubicacion.amplitud!);
-    return dist <= dkm;
-  });
-}
+  return vehiculos.filter((v: { ubicacion: { latitud: number | null; longitud: number | null; }; }) =>
+    v.ubicacion?.latitud != null &&
+    v.ubicacion?.longitud != null &&
+    calcularDistancia(lat, lng, v.ubicacion.latitud, v.ubicacion.longitud) <= dkm
+  );
+};
