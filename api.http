@@ -17,5 +17,8 @@ http://localhost:3000/pagos/pagarConQR/29
   "correoElectronico": "cliente@email.com"
 }
 
-
+Api para aeropuerto filtros
 http://localhost:3000/aeropuerto/autocompletar?q=alto
+http://localhost:3000/aeropuerto/autocompletar?q=algunTextoAqui
+http://localhost:3000/aeropuerto/vehiculos-cercanos/:idAeropuerto
+http://localhost:3000/aeropuerto/vehiculos-cercanos/6
