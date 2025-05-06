@@ -23,7 +23,7 @@ app.use('/pagos', rutasPago);
 app.use('/', qrRoutes);
 app.use('/historial', historialBusquedaRoutes);
 app.use('/reservas', reservasRoutes);
-app.use('/vehiculos', vehiculosRoutes); 
+app.use('/vehiculo', vehiculosRoutes); 
 
 
 

@@ -1,12 +1,9 @@
-// src/controllers/aeropuertoController.ts
-
 import { Request, Response } from 'express';
 import { z } from 'zod';
-import { PrismaClient } from '@prisma/client';
-import { getDistanceFromLatLonInKm } from '../utils/distance';
-
-const prisma = new PrismaClient();
-const MAX_DISTANCE_KM = 3;
+import {
+  autocompletarAeropuertoService,
+  obtenerVehiculosCercanosService
+} from '../services/filtroAeropuertoService';
 
 // ====================
 // Autocompletar aeropuertos por nombre
@@ -14,32 +11,27 @@ const MAX_DISTANCE_KM = 3;
 export const autocompletarAeropuerto = async (req: Request, res: Response): Promise<any> => {
   const { q } = req.query;
 
+  // Validar que el parámetro de búsqueda 'q' esté presente
   if (typeof q !== 'string' || q.trim() === '') {
-    return res.status(400).json({ mensaje: 'Debe ingresar un nombre de aeropuerto.' });
+    res.status(400).json({ mensaje: 'Debe ingresar un nombre de aeropuerto.' });
+    return;
   }
 
   try {
-    const resultados = await prisma.aeropuerto.findMany({
-      where: {
-        nombre: {
-          contains: q,
-          mode: 'insensitive',
-        },
-      },
-      take: 5,
-      orderBy: {
-        nombre: 'asc',
-      },
-    });
+    // Llamar al servicio de autocompletado
+    const resultados = await autocompletarAeropuertoService(q.trim());
 
+    // Si no hay resultados, devolver mensaje de error
     if (resultados.length === 0) {
-      return res.status(404).json({ mensaje: 'No se encontraron resultados.' });
+      res.status(404).json({ mensaje: 'No se encontraron resultados.' });
+      return;
     }
 
-    return res.json(resultados);
+    // Devolver los resultados encontrados
+    res.json(resultados);
   } catch (error) {
     console.error('Error al buscar aeropuertos:', error);
-    return res.status(500).json({ mensaje: 'Error de servidor al buscar aeropuertos.' });
+    res.status(500).json({ mensaje: 'Error de servidor al buscar aeropuertos.' });
   }
 };
 
@@ -53,58 +45,26 @@ export const obtenerVehiculosCercanos = async (req: Request, res: Response): Pro
 
   const parsed = schema.safeParse(req.params);
   if (!parsed.success) {
-    return res.status(400).json({ mensaje: 'Debe proporcionar un ID de aeropuerto válido.' });
+    res.status(400).json({ mensaje: 'Debe proporcionar un ID de aeropuerto válido.' });
+    return;
   }
 
   try {
-    const aeropuerto = await prisma.aeropuerto.findUnique({
-      where: { idaeropuerto: parsed.data.idAeropuerto },
-      include: { ubicacion: true },
-    });
+    const resultado = await obtenerVehiculosCercanosService(parsed.data.idAeropuerto);
 
-    if (!aeropuerto || !aeropuerto.ubicacion || aeropuerto.ubicacion.latitud == null || aeropuerto.ubicacion.amplitud == null) {
-      return res.status(404).json({ mensaje: 'Aeropuerto o ubicación no encontrada.' });
+    if (resultado.length === 0) {
+      res.status(200).json({ mensaje: 'No se encontraron vehículos disponibles cerca.' });
+      return;
     }
 
-    const vehiculos = await prisma.vehiculo.findMany({
-      where: {
-        disponible: "sí",
-        ubicacion: {
-          latitud: { not: null },
-          amplitud: { not: null },
-        },
-      },
-      include: { ubicacion: true },
-    });
-
-    const vehiculosCercanos = vehiculos
-      .map((vehiculo) => {
-        const distancia = getDistanceFromLatLonInKm(
-          aeropuerto.ubicacion.latitud!,
-          aeropuerto.ubicacion.amplitud!,
-          vehiculo.ubicacion.latitud!,
-          vehiculo.ubicacion.amplitud!
-        );
-        return { ...vehiculo, distancia };
-      })
-      .filter((vehiculo) => vehiculo.distancia <= MAX_DISTANCE_KM)
-      .sort((a, b) => a.distancia - b.distancia);
-
-    if (vehiculosCercanos.length === 0) {
-      return res.status(200).json({ mensaje: 'No se encontraron vehículos disponibles cerca.' });
+    res.json(resultado);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error('Error al obtener vehículos cercanos:', error.message);
+      res.status(500).json({ mensaje: error.message || 'Error al obtener vehículos cercanos.' });
+    } else {
+      console.error('Error desconocido:', error);
+      res.status(500).json({ mensaje: 'Error desconocido al obtener vehículos cercanos.' });
     }
-
-    const resultado = vehiculosCercanos.map((vehiculo) => ({
-      id: vehiculo.idvehiculo,
-      imagen: vehiculo.imagen,
-      precio: vehiculo.tarifa,
-      distancia: `${vehiculo.distancia.toFixed(2)} km`,
-    }));
-
-    return res.json(resultado);
-  } catch (error) {
-    console.error('Error al obtener vehículos cercanos:', error);
-    return res.status(500).json({ mensaje: 'Error al obtener vehículos cercanos.' });
   }
 };
-

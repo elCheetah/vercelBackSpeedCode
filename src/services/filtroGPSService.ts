@@ -1,4 +1,4 @@
-import prisma from '../prisma/client'; // Ajusta la ruta si es necesario
+import { prisma } from '../config/database';
 import { calcularDistancia } from '../utils/haversine';
 
 export async function obtenerAutosCercanos(lat: number, lon: number, dkm: number) {

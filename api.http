@@ -16,3 +16,6 @@ http://localhost:3000/pagos/pagarConQR/29
   "concepto": "Reserva de habitación",
   "correoElectronico": "cliente@email.com"
 }
+
+
+http://localhost:3000/aeropuerto/autocompletar?q=alto
