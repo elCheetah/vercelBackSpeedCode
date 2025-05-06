@@ -14,17 +14,21 @@ export const obtenerVehiculosDisponibles = async () => {
       ubicacion: {
         select: {
           latitud: true,
-          amplitud: true,
+          longitud: true,
         },
       },
     },
   });
-  return vehiculos.map(v => ({
-    idVehiculo: v.idvehiculo,
-    precio: v.tarifa,
-    latitud: v.ubicacion?.latitud,
-    amplitud: v.ubicacion?.amplitud,
-  }));
+
+  // Filtra vehículos con latitud y longitud válidas
+  return vehiculos
+    .filter(v => v.ubicacion?.latitud !== null && v.ubicacion?.longitud !== null)
+    .map(v => ({
+      idVehiculo: v.idvehiculo,
+      precio: v.tarifa,
+      latitud: v.ubicacion!.latitud!,
+      amplitud: v.ubicacion!.longitud!,
+    }));
 };
 
 export const getVehiculoPorId = async (id: number) => {

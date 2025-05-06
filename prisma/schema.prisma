@@ -50,7 +50,7 @@ model Ubicacion {
   pais        String     @db.VarChar(45)
   ciudad      String     @db.VarChar(45)
   latitud     Float?
-  amplitud    Float?
+  longitud    Float?
   vehiculos   Vehiculo[]
   aeropuertos Aeropuerto[] 
 }
