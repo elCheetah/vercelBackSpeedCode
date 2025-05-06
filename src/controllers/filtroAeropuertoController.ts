@@ -62,7 +62,7 @@ export const obtenerVehiculosCercanos = async (req: Request, res: Response): Pro
       include: { ubicacion: true },
     });
 
-    if (!aeropuerto || !aeropuerto.ubicacion) {
+    if (!aeropuerto || !aeropuerto.ubicacion || aeropuerto.ubicacion.latitud == null || aeropuerto.ubicacion.amplitud == null) {
       return res.status(404).json({ mensaje: 'Aeropuerto o ubicación no encontrada.' });
     }
 
@@ -71,7 +71,7 @@ export const obtenerVehiculosCercanos = async (req: Request, res: Response): Pro
         disponible: "sí",
         ubicacion: {
           latitud: { not: null },
-          longitud: { not: null },
+          amplitud: { not: null },
         },
       },
       include: { ubicacion: true },
@@ -80,10 +80,10 @@ export const obtenerVehiculosCercanos = async (req: Request, res: Response): Pro
     const vehiculosCercanos = vehiculos
       .map((vehiculo) => {
         const distancia = getDistanceFromLatLonInKm(
-          aeropuerto.latitud,
-          aeropuerto.longitud,
-          vehiculo.ubicacion.latitud ?? 0,
-          vehiculo.ubicacion.longitud ?? 0
+          aeropuerto.ubicacion.latitud!,
+          aeropuerto.ubicacion.amplitud!,
+          vehiculo.ubicacion.latitud!,
+          vehiculo.ubicacion.amplitud!
         );
         return { ...vehiculo, distancia };
       })
@@ -107,3 +107,4 @@ export const obtenerVehiculosCercanos = async (req: Request, res: Response): Pro
     return res.status(500).json({ mensaje: 'Error al obtener vehículos cercanos.' });
   }
 };
+

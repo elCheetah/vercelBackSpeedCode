@@ -25,10 +25,13 @@ app.use('/historial', historialBusquedaRoutes);
 app.use('/reservas', reservasRoutes);
 app.use('/vehiculos', vehiculosRoutes); 
 
+
+
 app.use('/mapa', mapaRoutes);
 app.use('/aeropuerto', filtroAeropuertoRoutes);
 app.use('/vehiculosxfechas', filtroXFechasRoutes);
 app.use('/vehiculosxgps', filtroGPS);
+
 // Archivos estáticos para comprobantes
 app.use(
   '/cmp',

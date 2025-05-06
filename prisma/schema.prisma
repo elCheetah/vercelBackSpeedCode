@@ -57,11 +57,9 @@ model Ubicacion {
 model Aeropuerto {
   idaeropuerto       Int        @id @default(autoincrement())
   nombre             String     @db.VarChar(100)
-  codigo             String     @unique @db.VarChar(10)       
-  latitud       Float     
-  longitud      Float      
-  ubicacion_id       Int
-  ubicacion          Ubicacion  @relation(fields: [ubicacion_id], references: [idubicacion])
+  codigo             String     @unique @db.VarChar(10)        
+  ubicacion_idubicacion  Int
+  ubicacion            Ubicacion            @relation(fields: [ubicacion_idubicacion], references: [idubicacion])
 }
 model Vehiculo {
   idvehiculo           Int                  @id @default(autoincrement())
