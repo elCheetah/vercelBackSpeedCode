@@ -8,7 +8,10 @@ import qrRoutes from './routes/generarQRRoute';
 import historialBusquedaRoutes from './routes/historialBusquedaRoutes';
 import reservasRoutes from './routes/reservas.routes';
 import mapaRoutes from './routes/filtroMapaPrecioRoutes';
-//import vehiculosRoutes from './routes/vehiculos.routes'; // la nueva ruta para GPS
+import vehiculosRoutes from './routes/vehiculoRoutes'; 
+import filtroAeropuertoRoutes from './routes/filtroAeropuertoRoutes';
+import filtroXFechasRoutes from './routes/filtroXFechasRoutes';
+import filtroGPS from './routes/filtroGPSRoutes';
 
 const app = express();
 dotenv.config();
@@ -20,9 +23,12 @@ app.use('/pagos', rutasPago);
 app.use('/', qrRoutes);
 app.use('/historial', historialBusquedaRoutes);
 app.use('/reservas', reservasRoutes);
-app.use('/mapa', mapaRoutes);
-//app.use('/vehiculos', vehiculosRoutes); // Ruta para el filtrado por GPS
+app.use('/vehiculos', vehiculosRoutes); 
 
+app.use('/mapa', mapaRoutes);
+app.use('/aeropuerto', filtroAeropuertoRoutes);
+app.use('/vehiculosxfechas', filtroXFechasRoutes);
+app.use('/vehiculosxgps', filtroGPS);
 // Archivos estáticos para comprobantes
 app.use(
   '/cmp',

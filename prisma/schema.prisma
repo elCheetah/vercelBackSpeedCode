@@ -52,8 +52,17 @@ model Ubicacion {
   latitud     Float?
   amplitud    Float?
   vehiculos   Vehiculo[]
+  aeropuertos Aeropuerto[] 
 }
-
+model Aeropuerto {
+  idaeropuerto       Int        @id @default(autoincrement())
+  nombre             String     @db.VarChar(100)
+  codigo             String     @unique @db.VarChar(10)       
+  latitud       Float     
+  longitud      Float      
+  ubicacion_id       Int
+  ubicacion          Ubicacion  @relation(fields: [ubicacion_id], references: [idubicacion])
+}
 model Vehiculo {
   idvehiculo           Int                  @id @default(autoincrement())
   imagen               String               @db.VarChar(1024)

@@ -1,38 +1,61 @@
 import { prisma } from '../config/database';
-import { isBefore, addMonths } from 'date-fns';
 
-export async function getAvailableVehiclesByDate(startDate: Date, endDate: Date) {
-  const now = new Date();
-
-  if (isBefore(startDate, now)) {
-    throw new Error('La fecha de inicio no puede ser menor a hoy.');
-  }
-
-  if (isBefore(endDate, startDate)) {
-    throw new Error('La fecha fin no puede ser menor a la fecha de inicio.');
-  }
-
-  const maxDate = addMonths(now, 12);
-  if (endDate > maxDate) {
-    throw new Error('El rango de fechas no puede exceder los 12 meses desde hoy.');
-  }
-
-  const availableVehicles = await prisma.vehiculo.findMany({
-    where: {
-      disponible: "sí",
-      estado: "activo",
-      reservas: {
-        none: {
-          OR: [
-            {
-              fecha_inicio: { lte: endDate },
-              fecha_fin: { gte: startDate }
+export const filtroFechasService = {
+  /**
+   * Find vehicles that are available within a specific date range
+   * A vehicle is available if:
+   * 1. It has disponible = "sí" and estado = "activo"
+   * 2. It doesn't have any reservations that overlap with the requested date range
+   */
+  async buscarVehiculosDisponibles(fechaInicio: Date, fechaFin: Date) {
+    // Find active vehicles that don't have overlapping reservations
+    const vehiculosDisponibles = await prisma.vehiculo.findMany({
+      where: {
+        disponible: "sí",
+        estado: "activo",
+        // Check that no reservation overlaps with the requested date range
+        NOT: {
+          reservas: {
+            some: {
+              // A reservation overlaps if:
+              // 1. It starts before the end date AND ends after the start date
+              // 2. It's not in a cancelled state
+              AND: [
+                {
+                  OR: [
+                    {
+                      fecha_inicio: {
+                        lte: fechaFin,
+                      },
+                      fecha_fin: {
+                        gte: fechaInicio,
+                      }
+                    }
+                  ]
+                },
+                {
+                  NOT: {
+                    estado: "cancelado"
+                  }
+                }
+              ]
             }
-          ]
+          }
+        }
+      },
+      include: {
+        ubicacion: true,
+        renter: {
+          select: {
+            idrenter: true,
+            nombre_completo: true,
+            correo: true,
+            telefono: true,
+          }
         }
       }
-    }
-  });
-
-  return availableVehicles;
-}
+    });
+    
+    return vehiculosDisponibles;
+  }
+};

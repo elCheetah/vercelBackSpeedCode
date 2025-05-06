@@ -3,12 +3,12 @@ import {
   obtenerUltimasBusquedas,
   registrarBusqueda,
   autocompletarBusquedas,
-} from '../services/HistorialBusqueda';
+} from '../services/historialBusquedaService';
 
 export const verUltimasBusquedas = async (req: Request, res: Response): Promise<void> => {
   try {
     const usuarioId = parseInt(req.params.usuarioId);
-    const limite = req.query.limite ? parseInt(req.query.limite as string) : 10;
+    const limite = req.query.limite ? parseInt(req.query.limite as string) : 5;
 
     if (isNaN(usuarioId)) {
       res.status(400).json({ error: 'ID de usuario inválido' });
@@ -17,17 +17,12 @@ export const verUltimasBusquedas = async (req: Request, res: Response): Promise<
 
     const busquedas = await obtenerUltimasBusquedas(usuarioId, limite);
 
-    interface Busqueda {
-      termino_busqueda: string;
-      [key: string]: any; // To allow other properties that might exist in the object
-    }
-
-    const resultadoFormateado = busquedas.map((b: Busqueda) => ({
+    const resultadoFormateado = busquedas.map((b) => ({
       ...b,
       termino_busqueda:
-      b.termino_busqueda.length > 25
-        ? b.termino_busqueda.slice(0, 20) + '...'
-        : b.termino_busqueda,
+        b.termino_busqueda.length > 25
+          ? b.termino_busqueda.slice(0, 20) + '...'
+          : b.termino_busqueda,
     }));
 
     res.status(200).json(resultadoFormateado);

@@ -1,13 +1,11 @@
 import { prisma } from '../config/database';
 
-export const obtenerUltimasBusquedas = async (usuarioId: number, limite: number = 10) => {
+const LIMITE_HISTORIAL = 15;
+
+export const obtenerUltimasBusquedas = async (usuarioId: number, limite: number = 5) => {
   return await prisma.historialBusqueda.findMany({
-    where: {
-      usuario_idusuario: usuarioId,
-    },
-    orderBy: {
-      creado_en: 'desc',
-    },
+    where: { usuario_idusuario: usuarioId },
+    orderBy: { creado_en: 'desc' },
     take: limite,
   });
 };
@@ -32,6 +30,21 @@ export const registrarBusqueda = async (usuarioId: number, termino: string, filt
       data: { creado_en: new Date() },
     });
   } else {
+    const total = await prisma.historialBusqueda.count({
+      where: { usuario_idusuario: usuarioId },
+    });
+
+    if (total >= LIMITE_HISTORIAL) {
+      const masAntigua = await prisma.historialBusqueda.findFirst({
+        where: { usuario_idusuario: usuarioId },
+        orderBy: { creado_en: 'asc' },
+      });
+
+      if (masAntigua) {
+        await prisma.historialBusqueda.delete({ where: { id: masAntigua.id } });
+      }
+    }
+
     return await prisma.historialBusqueda.create({
       data: {
         usuario_idusuario: usuarioId,
