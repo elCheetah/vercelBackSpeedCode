@@ -14,7 +14,7 @@ export const obtenerVehiculosDisponibles = async () => {
       ubicacion: {
         select: {
           latitud: true,
-          amplitud: true,
+          longitud: true,
         },
       },
     },
@@ -23,7 +23,7 @@ export const obtenerVehiculosDisponibles = async () => {
     idVehiculo: v.idvehiculo,
     precio: v.tarifa,
     latitud: v.ubicacion?.latitud,
-    amplitud: v.ubicacion?.amplitud,
+    amplitud: v.ubicacion?.longitud,
   }));
 };
 
