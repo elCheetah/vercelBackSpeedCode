@@ -119,8 +119,11 @@ export const filtrarVehiculos = async (filtro: FiltroVehiculo) => {
     include: {
       ubicacion: true,
       reservas: true,
-      renter: true,
-      calificaciones: true,
+      calificaciones: {
+        select: {
+          puntuacion: true,
+        },
+      },
     },
   });
 
@@ -151,28 +154,28 @@ export const filtrarVehiculos = async (filtro: FiltroVehiculo) => {
     return true;
   });
 
-  // Mapear resultados con calificación promedio
-  const resultado = filtrado.map(v => {
-    const calificaciones = v.calificaciones || [];
+  // Formatear resultado con promedio de calificación y datos relevantes
+  const vehiculosFormateados = filtrado.map(v => {
     const promedio =
-      calificaciones.length > 0
-        ? calificaciones.reduce((acc, c) => acc + c.puntuacion, 0) / calificaciones.length
+      v.calificaciones.length > 0
+        ? v.calificaciones.reduce((acc, c) => acc + c.puntuacion, 0) / v.calificaciones.length
         : null;
 
     return {
       id: v.idvehiculo,
+      imagen: v.imagen,
       nombre: `${v.marca} - ${v.modelo}`,
       descripcion: v.descripcion,
       precio: v.tarifa,
+      calificacion: promedio,
       latitud: v.ubicacion?.latitud,
       longitud: v.ubicacion?.longitud,
-      calificacion: promedio,
     };
   });
 
   return {
-    cantidad: resultado.length,
-    vehiculos: resultado,
+    cantidad: vehiculosFormateados.length,
+    vehiculos: vehiculosFormateados,
   };
 };
 
