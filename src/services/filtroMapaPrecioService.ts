@@ -151,9 +151,28 @@ export const filtrarVehiculos = async (filtro: FiltroVehiculo) => {
     return true;
   });
 
+  // Mapear resultados con calificación promedio
+  const resultado = filtrado.map(v => {
+    const calificaciones = v.calificaciones || [];
+    const promedio =
+      calificaciones.length > 0
+        ? calificaciones.reduce((acc, c) => acc + c.puntuacion, 0) / calificaciones.length
+        : null;
+
+    return {
+      id: v.idvehiculo,
+      nombre: `${v.marca} - ${v.modelo}`,
+      descripcion: v.descripcion,
+      precio: v.tarifa,
+      latitud: v.ubicacion?.latitud,
+      longitud: v.ubicacion?.longitud,
+      calificacion: promedio,
+    };
+  });
+
   return {
-    cantidad: filtrado.length,
-    vehiculos: filtrado,
+    cantidad: resultado.length,
+    vehiculos: resultado,
   };
 };
 
