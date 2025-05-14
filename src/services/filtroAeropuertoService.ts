@@ -11,7 +11,7 @@ export async function autocompletarAeropuertoService(q: string) {
         mode: 'insensitive',  // Ignorar mayúsculas y minúsculas
       },
     },
-    take: 5,  // Limitar a los primeros 5 resultados
+    take: 15,  // Limitar a los primeros 15 resultados
     orderBy: {
       nombre: 'asc',  // Ordenar por nombre ascendentemente
     },
@@ -20,6 +20,7 @@ export async function autocompletarAeropuertoService(q: string) {
     },
   });
 
+  console.log('Aeropuertos devueltos:', resultados.length);
   return resultados;  // Devolver los resultados encontrados
 }
 
