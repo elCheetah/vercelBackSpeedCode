@@ -1,7 +1,6 @@
 import { prisma } from '../config/database';
 import { isWithinInterval } from 'date-fns';
 
-
 export const obtenerVehiculosDisponibles = async () => {
   const vehiculos = await prisma.vehiculo.findMany({
     where: {
@@ -13,6 +12,9 @@ export const obtenerVehiculosDisponibles = async () => {
     select: {
       idvehiculo: true,
       tarifa: true,
+      anio: true,
+      transmision: true,
+      consumo: true,
       ubicacion: {
         select: {
           latitud: true,
@@ -26,6 +28,9 @@ export const obtenerVehiculosDisponibles = async () => {
     precio: v.tarifa,
     latitud: v.ubicacion?.latitud,
     amplitud: v.ubicacion?.longitud,
+    anio: v.anio,
+    transmision: v.transmision,
+    consumo: v.consumo,
   }));
 };
 
@@ -58,13 +63,11 @@ export const getVehiculoPorId = async (id: number) => {
     descripcion: v.descripcion,
     precio: v.tarifa,
     calificacion: promedio,
+    anio: v.anio,
+    transmision: v.transmision,
+    consumo: v.consumo,
   };
 };
-
-/*
-====================================================================================
-================PARA COMBINACIONES DE FILTRADO======================================
-*/
 
 interface FiltroVehiculo {
   texto?: string;
@@ -105,15 +108,15 @@ export const filtrarVehiculos = async (filtro: FiltroVehiculo) => {
       },
       OR: texto
         ? [
-          { modelo: { contains: texto, mode: 'insensitive' } },
-          { marca: { contains: texto, mode: 'insensitive' } },
-        ]
+            { modelo: { contains: texto, mode: 'insensitive' } },
+            { marca: { contains: texto, mode: 'insensitive' } },
+          ]
         : undefined,
       ubicacion: lat && lng
         ? {
-          latitud: { not: null },
-          longitud: { not: null },
-        }
+            latitud: { not: null },
+            longitud: { not: null },
+          }
         : undefined,
     },
     include: {
@@ -128,7 +131,6 @@ export const filtrarVehiculos = async (filtro: FiltroVehiculo) => {
   });
 
   const filtrado = vehiculos.filter(v => {
-    // Validar distancia
     if (
       lat !== undefined &&
       lng !== undefined &&
@@ -139,7 +141,6 @@ export const filtrarVehiculos = async (filtro: FiltroVehiculo) => {
       if (distancia > dkm) return false;
     }
 
-    // Validar fechas
     if (fechaInicio && fechaFin) {
       const reservado = v.reservas.some(r => {
         return (
@@ -154,7 +155,6 @@ export const filtrarVehiculos = async (filtro: FiltroVehiculo) => {
     return true;
   });
 
-  // Formatear resultado con promedio de calificación y datos relevantes
   const vehiculosFormateados = filtrado.map(v => {
     const promedio =
       v.calificaciones.length > 0
@@ -170,6 +170,9 @@ export const filtrarVehiculos = async (filtro: FiltroVehiculo) => {
       calificacion: promedio,
       latitud: v.ubicacion?.latitud,
       longitud: v.ubicacion?.longitud,
+      anio: v.anio,
+      transmision: v.transmision,
+      consumo: v.consumo,
     };
   });
 
@@ -180,7 +183,7 @@ export const filtrarVehiculos = async (filtro: FiltroVehiculo) => {
 };
 
 function calcularDistancia(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371; // Radio de la Tierra en km
+  const R = 6371;
   const dLat = toRad(lat2 - lat1);
   const dLon = toRad(lon2 - lon1);
   const a =
