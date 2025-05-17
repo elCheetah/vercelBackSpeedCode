@@ -1,109 +1,78 @@
 import { prisma } from '../config/database';
 
-const MAX_DISTANCE_KM = 5;
+// Configuración para la distancia máxima en km
+const MAX_DISTANCE_KM = 3;
 
 export async function autocompletarAeropuertoService(q: string) {
   const resultados = await prisma.aeropuerto.findMany({
     where: {
       nombre: {
-        contains: q,
-        mode: 'insensitive',
+        contains: q,  // Buscar coincidencias parciales
+        mode: 'insensitive',  // Ignorar mayúsculas y minúsculas
       },
     },
-    take: 15,
+    take: 15,  // Limitar a los primeros 15 resultados
     orderBy: {
-      nombre: 'asc',
+      nombre: 'asc',  // Ordenar por nombre ascendentemente
     },
     include: {
-      ubicacion: {
-        select: {
-          ciudad: true,
-          pais: true,
-          latitud: true,
-          longitud: true,
-        },
-      },
+      ubicacion: true,  // Incluir la ubicación en los resultados
     },
   });
 
-  const transformados = resultados.map((aeropuerto) => ({
-    id: aeropuerto.idaeropuerto,
-    nombre: aeropuerto.nombre,
-    codigo: aeropuerto.codigo,
-    ciudad: aeropuerto.ubicacion?.ciudad || '',
-    pais: aeropuerto.ubicacion?.pais || '',
-    latitud: aeropuerto.ubicacion?.latitud ?? null,
-    longitud: aeropuerto.ubicacion?.longitud ?? null,
-  }));
-
-  console.log('Aeropuertos devueltos:', transformados.length);
-  return transformados;
+  console.log('Aeropuertos devueltos:', resultados.length);
+  return resultados;  // Devolver los resultados encontrados
 }
 
 export async function obtenerVehiculosCercanosService(idAeropuerto: number) {
   const aeropuerto = await prisma.aeropuerto.findUnique({
     where: { idaeropuerto: idAeropuerto },
-    include: {
-      ubicacion: {
-        select: {
-          latitud: true,
-          longitud: true,
-        },
-      },
-    },
+    include: { ubicacion: true },
   });
 
-  if (
-    !aeropuerto ||
-    !aeropuerto.ubicacion ||
-    aeropuerto.ubicacion.latitud == null ||
-    aeropuerto.ubicacion.longitud == null
-  ) {
+  if (!aeropuerto || !aeropuerto.ubicacion || aeropuerto.ubicacion.latitud == null || aeropuerto.ubicacion.longitud == null) {
     throw new Error('Aeropuerto o ubicación no encontrada.');
   }
 
-  const { latitud: lat1, longitud: lon1 } = aeropuerto.ubicacion;
-
   const vehiculos = await prisma.vehiculo.findMany({
     where: {
-      disponible: 'sí',
+      disponible: "sí",  // Filtrar por vehículos disponibles
       ubicacion: {
         latitud: { not: null },
         longitud: { not: null },
       },
     },
-    include: {
-      ubicacion: {
-        select: {
-          latitud: true,
-          longitud: true,
-        },
-      },
-    },
+    include: { ubicacion: true },
   });
 
+  // Calcular la distancia de cada vehículo y filtrar por la distancia máxima
   const vehiculosCercanos = vehiculos
     .map((vehiculo) => {
-      const lat2 = vehiculo.ubicacion?.latitud!;
-      const lon2 = vehiculo.ubicacion?.longitud!;
-      const distancia = getDistanceFromLatLonInKm(lat1!, lon1!, lat2, lon2);
+      const distancia = getDistanceFromLatLonInKm(
+        aeropuerto.ubicacion.latitud!,
+        aeropuerto.ubicacion.longitud!,
+        vehiculo.ubicacion.latitud!,
+        vehiculo.ubicacion.longitud!
+      );
       return { ...vehiculo, distancia };
     })
     .filter((vehiculo) => vehiculo.distancia <= MAX_DISTANCE_KM)
     .sort((a, b) => a.distancia - b.distancia);
 
+  // Devolver la lista de vehículos cercanos
   return vehiculosCercanos.map((vehiculo) => ({
     id: vehiculo.idvehiculo,
     imagen: vehiculo.imagen,
     precio: vehiculo.tarifa,
     distancia: `${vehiculo.distancia.toFixed(2)} km`,
-    latitud: vehiculo.ubicacion?.latitud ?? null,
-    longitud: vehiculo.ubicacion?.longitud ?? null,
+    latitud: vehiculo.ubicacion.latitud,
+    longitud: vehiculo.ubicacion.longitud,
   }));
 }
 
+// Función para calcular la distancia entre dos puntos geográficos (en km)
 function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371;
+  const R = 6371;  // Radio de la Tierra en km
   const dLat = deg2rad(lat2 - lat1);
   const dLon = deg2rad(lon2 - lon1);
   const a =
@@ -111,9 +80,10 @@ function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon
     Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
     Math.sin(dLon / 2) * Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
+  return R * c;  // Retorna la distancia en km
 }
 
+// Función auxiliar para convertir grados a radianes
 function deg2rad(deg: number): number {
   return deg * (Math.PI / 180);
 }
