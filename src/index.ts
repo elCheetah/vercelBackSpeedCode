@@ -7,6 +7,9 @@ import cors from 'cors';
 //import qrRoutes from './routes/generarQRRoute';
 //import reservasRoutes from './routes/reservas.routes';
 
+
+
+//nuevos apis falta de pago actualizar por algun error interno 
 import mapaRoutesApi from "./routes/speedcode/filtroMapaPrecioRoutes";
 const app = express();
 dotenv.config();
