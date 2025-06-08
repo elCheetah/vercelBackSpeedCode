@@ -1,3 +1,4 @@
+/*
 // pago.controller.ts
 import { Request, Response } from 'express';
 import * as PagoService from '../services/pago.service';
@@ -209,3 +210,5 @@ export const generarCodigoComprobante = (): string => {
   }
   return comprobante;
 };
+
+*/

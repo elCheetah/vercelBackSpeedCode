@@ -1,3 +1,4 @@
+/*
 import { Request, Response } from 'express';
 import QRCode from 'qrcode';
 import fs from 'fs';
@@ -127,3 +128,4 @@ export const generarQR = async (req: Request, res: Response) => {
     }
   }
 };
+*/

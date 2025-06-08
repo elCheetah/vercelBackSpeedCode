@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+/*import { Request, Response } from 'express';
 import { prisma } from '../config/database';
 
 
@@ -213,3 +213,4 @@ export const obtenerTiempoReserva = async (req: Request, res: Response): Promise
     return res.status(500).json({ success: false, message: "Error del servidor" });
   }
 };
+*/

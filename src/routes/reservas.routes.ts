@@ -1,3 +1,4 @@
+/*
 import { Router } from 'express';
 import {
   crearReserva,
@@ -20,3 +21,4 @@ router.get('/obtenerTiempoReserva/:idReserva', obtenerTiempoReserva);
 export default router;
 
 
+*/

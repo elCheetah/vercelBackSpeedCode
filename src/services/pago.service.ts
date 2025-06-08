@@ -1,3 +1,4 @@
+/*
 import { prisma } from '../config/database';
 import { MetodoPago } from '@prisma/client';
 
@@ -52,3 +53,4 @@ export const obtenerPagos = async () => {
     throw new Error('Error al obtener los pagos');
   }
 };
+*/
