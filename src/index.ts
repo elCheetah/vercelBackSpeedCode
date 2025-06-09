@@ -2,7 +2,8 @@ import express from 'express';
 import dotenv from 'dotenv';
 import path from 'path';
 import cors from 'cors';
-
+import historialRoutes from "./routes/speedcode/historialBusquedaRoutes";
+ 
 //import rutasPago from './routes/pago.routes';
 //import qrRoutes from './routes/generarQRRoute';
 //import reservasRoutes from './routes/reservas.routes';
@@ -22,6 +23,7 @@ app.use('/api', mapaRoutesApi);
 //app.use('/', qrRoutes);
 
 //app.use('/reservas', reservasRoutes);
+app.use('/historial', require('./routes/speedcode/historialBusquedaRoutes'));
 
 
 
