@@ -3,31 +3,28 @@ import dotenv from 'dotenv';
 import path from 'path';
 import cors from 'cors';
 import historialRoutes from "./routes/speedcode/historialBusquedaRoutes";
- 
+import mapaRoutesApi from "./routes/speedcode/filtroMapaPrecioRoutes";
+
+// Comentadas temporalmente - descomenta cuando las necesites
 //import rutasPago from './routes/pago.routes';
 //import qrRoutes from './routes/generarQRRoute';
 //import reservasRoutes from './routes/reservas.routes';
 
-
-
-//nuevos apis falta de pago actualizar por algun error interno 
-import mapaRoutesApi from "./routes/speedcode/filtroMapaPrecioRoutes";
 const app = express();
 dotenv.config();
+
+// Middlewares
 app.use(cors());
 app.use(express.json());
 
 // Rutas de APIs
 app.use('/api', mapaRoutesApi);
+app.use('/historial', historialRoutes);
+
+// Rutas comentadas - descomenta cuando las necesites
 //app.use('/pagos', rutasPago);
 //app.use('/', qrRoutes);
-
 //app.use('/reservas', reservasRoutes);
-app.use('/historial', require('./routes/speedcode/historialBusquedaRoutes'));
-
-
-
-
 
 // Archivos estáticos para comprobantes
 app.use(

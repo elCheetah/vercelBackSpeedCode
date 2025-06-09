@@ -13,14 +13,14 @@ export const obtenerUltimasBusquedas = (req: Request, res: Response): void => {
 };
 
 export const registrarBusqueda = (req: Request, res: Response): void => {
-  const { usuarioId, termino, filtros } = req.body;
+  const { usuarioId, termino } = req.body;
   if (!usuarioId || !termino) {
     res.status(400).json({ error: "Faltan datos requeridos" });
     return;
   }
 
   try {
-    const resultado = historialService.registrarBusqueda(usuarioId, termino, filtros);
+    const resultado = historialService.registrarBusqueda(usuarioId, termino);
     res.status(201).json(resultado);
   } catch (err: any) {
     res.status(400).json({ error: err.message });

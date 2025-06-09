@@ -3,7 +3,6 @@ import path from "path";
 
 type Busqueda = {
   termino: string;
-  filtros?: any;
   creado_en: string; // guardamos como string para JSON
 };
 
@@ -30,7 +29,7 @@ export const obtenerUltimasBusquedas = (usuarioId: number, limite = 5): Busqueda
     .slice(0, limite);
 };
 
-export const registrarBusqueda = (usuarioId: number, termino: string, filtros?: any): Busqueda => {
+export const registrarBusqueda = (usuarioId: number, termino: string): Busqueda => {
   const data = leerHistorial();
   const terminoNormalizado = termino.toLowerCase().trim();
   if (terminoNormalizado.length > 100) {
@@ -50,7 +49,6 @@ export const registrarBusqueda = (usuarioId: number, termino: string, filtros?: 
 
     historial.push({
       termino: terminoNormalizado,
-      filtros,
       creado_en: new Date().toISOString()
     });
   }
