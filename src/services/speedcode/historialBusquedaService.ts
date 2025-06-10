@@ -69,3 +69,31 @@ export const autocompletarBusquedas = (usuarioId: number, texto: string): Busque
     .sort((a, b) => new Date(b.creado_en).getTime() - new Date(a.creado_en).getTime())
     .slice(0, 5);
 };
+
+export const eliminarBusqueda = (usuarioId: number, termino: string): boolean => {
+  const data = leerHistorial();
+  const historial = data[usuarioId] || [];
+  const terminoNormalizado = termino.toLowerCase().trim();
+
+  const index = historial.findIndex(b => b.termino === terminoNormalizado);
+  if (index === -1) {
+    return false; // No se encontró el término
+  }
+
+  historial.splice(index, 1);
+  data[usuarioId] = historial;
+  guardarHistorial(data);
+  return true;
+};
+
+export const limpiarHistorial = (usuarioId: number): boolean => {
+  const data = leerHistorial();
+  
+  if (!data[usuarioId] || data[usuarioId].length === 0) {
+    return false; // No hay historial para limpiar
+  }
+
+  data[usuarioId] = [];
+  guardarHistorial(data);
+  return true;
+};
