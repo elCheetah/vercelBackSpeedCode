@@ -1,15 +1,12 @@
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
-import fs from 'fs';
 dotenv.config();
 
 const transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST,
-    port: Number(process.env.EMAIL_PORT),
-    secure: false,
+    service: 'gmail',
     auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_PASS,
     },
 });
 
@@ -21,7 +18,7 @@ export const sendEmail = async (
 ) => {
     try {
         const mailOptions: any = {
-            from: `"RediBo Notificaciones" <${process.env.EMAIL_USER}>`,
+            from: `"RediBo Notificaciones" <${process.env.GMAIL_USER}>`,
             to,
             subject,
             html,
@@ -33,8 +30,8 @@ export const sendEmail = async (
                     filename: 'comprobante_pago.png',
                     content: Buffer.from(imageBase64, 'base64'),
                     encoding: 'base64',
-                    contentType: 'image/png'
-                }
+                    contentType: 'image/png',
+                },
             ];
         }
 
@@ -46,4 +43,3 @@ export const sendEmail = async (
         return false;
     }
 };
-

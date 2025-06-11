@@ -19,13 +19,22 @@ export const registrarPago = async (
       throw new Error('La reserva no existe');
     }
 
-    if (!reserva.registroPagos) {
-      throw new Error('La reserva no tiene un registro de pagos');
-    }
+let registro = reserva.registroPagos;
+
+if (!registro) {
+registro = await prisma.registroPagos.create({
+  data: {
+    idReserva: reserva_idreserva,
+    montoTotal: monto,
+    concepto, // ✅ ahora sí cumple con el esquema de Prisma
+  }
+});
+}
+
 
     const nuevoPago = await prisma.pago.create({
       data: {
-        idRegistroPagos: reserva.registroPagos.idRegistroPagos, // ✅ Correcto según tu modelo
+         idRegistroPagos: registro.idRegistroPagos, // ✅ Correcto según tu modelo
         monto,
         metodoPago: metodo_pago,
         referencia,
