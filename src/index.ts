@@ -4,6 +4,7 @@ import path from 'path';
 import cors from 'cors';
 import historialRoutes from "./routes/speedcode/historialBusquedaRoutes";
 import mapaRoutesApi from "./routes/speedcode/filtroMapaPrecioRoutes";
+import conductoresRoutes from './routes/speedcode/conductoresRoutes'; //agregado
 
 // Comentadas temporalmente - descomenta cuando las necesites
 import rutasPago from './routes/pago.routes';
@@ -25,6 +26,7 @@ app.use('/historial', historialRoutes);
 app.use('/pagos', rutasPago);
 app.use('/', qrRoutes);
 app.use('/reservas', reservasRoutes);
+app.use('/api/conductores', conductoresRoutes);//recien agregada
 
 // Archivos estáticos para comprobantes
 app.use(
