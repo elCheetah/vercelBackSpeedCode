@@ -1,11 +1,9 @@
-/*import { Router, Request, Response } from 'express';
+import { Router } from 'express';
 import { generarQR } from '../controllers/generarQRController';
+import { asyncHandler } from '../utils/asyncHandler';
 
 const router = Router();
 
-router.get('/generarQR/:tipo/:monto/:idReserva', (req: Request, res: Response) => {
-  generarQR(req, res);
-});
+router.get('/generarQR/:tipo/:monto/:idReserva', asyncHandler(generarQR));
 
 export default router;
-*/

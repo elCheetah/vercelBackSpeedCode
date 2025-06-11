@@ -6,9 +6,9 @@ import historialRoutes from "./routes/speedcode/historialBusquedaRoutes";
 import mapaRoutesApi from "./routes/speedcode/filtroMapaPrecioRoutes";
 
 // Comentadas temporalmente - descomenta cuando las necesites
-//import rutasPago from './routes/pago.routes';
-//import qrRoutes from './routes/generarQRRoute';
-//import reservasRoutes from './routes/reservas.routes';
+import rutasPago from './routes/pago.routes';
+import qrRoutes from './routes/generarQRRoute';
+import reservasRoutes from './routes/reservas.routes';
 
 const app = express();
 dotenv.config();
@@ -22,9 +22,9 @@ app.use('/api', mapaRoutesApi);
 app.use('/historial', historialRoutes);
 
 // Rutas comentadas - descomenta cuando las necesites
-//app.use('/pagos', rutasPago);
-//app.use('/', qrRoutes);
-//app.use('/reservas', reservasRoutes);
+app.use('/pagos', rutasPago);
+app.use('/', qrRoutes);
+app.use('/reservas', reservasRoutes);
 
 // Archivos estáticos para comprobantes
 app.use(
