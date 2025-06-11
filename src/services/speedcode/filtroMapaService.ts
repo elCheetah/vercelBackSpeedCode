@@ -97,6 +97,7 @@ export const filtrarVehiculos = async (filtro: FiltroVehiculo) => {
       latitud: v.ubicacion.latitud,
       longitud: v.ubicacion.longitud,
       anio: v.año,
+      estado: v.estado,
       transmision: v.transmision,
       consumo: v.combustible,
       distancia: distancia !== null ? parseFloat(distancia.toFixed(2)) : null,
