@@ -1,4 +1,3 @@
-/*
 import { prisma } from '../config/database';
 import { MetodoPago } from '@prisma/client';
 
@@ -10,29 +9,28 @@ export const registrarPago = async (
   concepto: string
 ) => {
   try {
-    const reservaExistente = await prisma.reserva.findUnique({
-      where: { idreserva: reserva_idreserva },
+    // Buscar la reserva y su registro de pagos
+    const reserva = await prisma.reserva.findUnique({
+      where: { idReserva: reserva_idreserva },
+      include: { registroPagos: true }
     });
 
-    if (!reservaExistente) {
+    if (!reserva) {
       throw new Error('La reserva no existe');
+    }
+
+    if (!reserva.registroPagos) {
+      throw new Error('La reserva no tiene un registro de pagos');
     }
 
     const nuevoPago = await prisma.pago.create({
       data: {
-        reserva_idreserva,
+        idRegistroPagos: reserva.registroPagos.idRegistroPagos, // ✅ Correcto según tu modelo
         monto,
-        metodo_pago,
+        metodoPago: metodo_pago,
         referencia,
-        detalles: {
-          create: {
-            concepto,
-            monto
-          }
-        }
-      },
-      include: {
-        detalles: true
+        tipo: 'RENTA' // o 'GARANTIA' si deseas diferenciarlo
+        // NOTA: la lógica de garantía adicional debe hacerse aparte
       }
     });
 
@@ -44,7 +42,6 @@ export const registrarPago = async (
   }
 };
 
-
 export const obtenerPagos = async () => {
   try {
     return await prisma.pago.findMany();
@@ -53,4 +50,6 @@ export const obtenerPagos = async () => {
     throw new Error('Error al obtener los pagos');
   }
 };
-*/
+
+// Asegura que TypeScript lo trate como módulo
+export {};
