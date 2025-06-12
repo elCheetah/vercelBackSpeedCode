@@ -1,16 +1,14 @@
-
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import QRCode from 'qrcode';
 import fs from 'fs';
 import path from 'path';
 import { generarCodigoComprobante } from './pago.controller';
 import { buscarQRPorReserva } from './../middlewares/validarQR';
 
-export const generarQR = async (req: Request, res: Response) => {
+export const generarQR = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { tipo, monto, idReserva } = req.params;
 
-    // Validación de parámetros
     if (!monto) {
       return res.status(400).json({ error: 'Monto obligatorio para generar QR.' });
     }
@@ -24,19 +22,14 @@ export const generarQR = async (req: Request, res: Response) => {
     }
 
     const reservaId = Number(idReserva);
+    const publicDir = path.join(process.cwd(), 'public', 'qr');
 
-    // Ruta pública donde se guardarán los archivos QR y JSON
-    const publicDir = path.join(process.cwd(), 'public', 'qr'); // Carpeta pública accesible
-
-    // Crear directorio si no existe
     if (!fs.existsSync(publicDir)) {
       fs.mkdirSync(publicDir, { recursive: true });
     }
 
-    // Buscar si ya existe un QR asociado a la reserva
     const resultado = await buscarQRPorReserva(reservaId);
 
-    // Si es "regenerar", eliminar QR y JSON anteriores si existen
     if (tipo === 'regenerar' && resultado.encontrado) {
       const rutaQRExistente = path.join(publicDir, resultado.archivoQR || '');
       const rutaJSONExistente = path.join(publicDir, resultado.archivoJSON || '');
@@ -50,7 +43,6 @@ export const generarQR = async (req: Request, res: Response) => {
       }
     }
 
-    // Si es "crear" y ya existe un QR, retornar la información
     if (tipo === 'crear' && resultado.encontrado) {
       const rutaQRExistente = path.join(publicDir, resultado.archivoQR || '');
       let base64 = '';
@@ -69,7 +61,6 @@ export const generarQR = async (req: Request, res: Response) => {
       });
     }
 
-    // Generar nuevo QR
     const referencia = 'QR-' + generarCodigoComprobante();
     const fecha = new Date().toISOString();
     const datos = { idReserva, referencia, monto, fecha };
@@ -81,19 +72,14 @@ export const generarQR = async (req: Request, res: Response) => {
     const rutaJson = path.join(publicDir, archivoJson);
     const rutaQR = path.join(publicDir, archivoQRNuevo);
 
-    // Guardar datos en archivo JSON
     fs.writeFileSync(rutaJson, JSON.stringify(datos, null, 2), 'utf-8');
 
     const contenidoQR = `idReserva: ${idReserva}, Monto: ${monto}, Referencia: ${referencia}, Fecha: ${fecha}`;
-
-    // Generar el QR
     await QRCode.toFile(rutaQR, contenidoQR);
 
-    // Leer y convertir QR a base64
     const buffer = fs.readFileSync(rutaQR);
     const base64 = buffer.toString('base64');
 
-    // Eliminación automática en 10 minutos
     setTimeout(() => {
       try {
         if (fs.existsSync(rutaQR)) fs.unlinkSync(rutaQR);
@@ -110,22 +96,11 @@ export const generarQR = async (req: Request, res: Response) => {
       archivoJSON: archivoJson,
       referencia,
       qrBase64: base64,
-      urlQR: `https://vercelbackspeedcode.onrender.com/qr/${archivoQRNuevo}` // URL pública para acceder al QR
+      urlQR: `https://vercelbackspeedcode.onrender.com/qr/${archivoQRNuevo}`
     });
 
-  } catch (error: unknown) {
+  } catch (error) {
     console.error('Error al generar QR:', error);
-    if (error instanceof Error) {
-      return res.status(500).json({
-        error: 'Error interno al generar el QR.',
-        message: error.message,
-        stack: error.stack
-      });
-    } else {
-      return res.status(500).json({
-        error: 'Error desconocido al generar el QR.'
-      });
-    }
+    next(error); // ✅ Llama a next para pasar errores a Express
   }
 };
-export {}; 
