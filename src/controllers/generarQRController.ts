@@ -9,16 +9,17 @@ export const generarQR = async (req: Request, res: Response, next: NextFunction)
   try {
     const { tipo, monto, idReserva } = req.params;
 
-    if (!monto) {
-      return res.status(400).json({ error: 'Monto obligatorio para generar QR.' });
+    // Validaciones básicas
+    if (!monto || isNaN(Number(monto))) {
+      return res.status(400).json({ error: 'Monto obligatorio y debe ser numérico.' });
     }
 
-    if (!idReserva) {
-      return res.status(400).json({ error: 'idReserva obligatorio para generar QR.' });
+    if (!idReserva || isNaN(Number(idReserva))) {
+      return res.status(400).json({ error: 'ID de reserva obligatorio y debe ser numérico.' });
     }
 
-    if (!tipo || (tipo !== 'crear' && tipo !== 'regenerar')) {
-      return res.status(400).json({ error: 'Debe especificar "crear" o "regenerar" en el tipo.' });
+    if (!tipo || !['crear', 'regenerar'].includes(tipo)) {
+      return res.status(400).json({ error: 'Tipo debe ser "crear" o "regenerar".' });
     }
 
     const reservaId = Number(idReserva);
@@ -28,16 +29,17 @@ export const generarQR = async (req: Request, res: Response, next: NextFunction)
       fs.mkdirSync(publicDir, { recursive: true });
     }
 
+    // Verifica si ya hay QR para esta reserva
     const resultado = await buscarQRPorReserva(reservaId);
 
     if (tipo === 'regenerar' && resultado.encontrado) {
+      // Eliminar QR anterior
       const rutaQRExistente = path.join(publicDir, resultado.archivoQR || '');
       const rutaJSONExistente = path.join(publicDir, resultado.archivoJSON || '');
-
       try {
         if (fs.existsSync(rutaQRExistente)) fs.unlinkSync(rutaQRExistente);
         if (fs.existsSync(rutaJSONExistente)) fs.unlinkSync(rutaJSONExistente);
-        console.log(`Archivos antiguos eliminados: ${rutaQRExistente}, ${rutaJSONExistente}`);
+        console.log('QR anterior eliminado correctamente.');
       } catch (err) {
         console.error('Error al eliminar archivos anteriores:', err);
       }
@@ -61,9 +63,15 @@ export const generarQR = async (req: Request, res: Response, next: NextFunction)
       });
     }
 
+    // Generar nuevo QR
     const referencia = 'QR-' + generarCodigoComprobante();
     const fecha = new Date().toISOString();
-    const datos = { idReserva, referencia, monto, fecha };
+    const datosJSON = {
+      idReserva: reservaId.toString(),
+      referencia,
+      monto,
+      fecha
+    };
 
     const nombreBase = `qr_${Date.now()}`;
     const archivoJson = `${nombreBase}.json`;
@@ -72,23 +80,15 @@ export const generarQR = async (req: Request, res: Response, next: NextFunction)
     const rutaJson = path.join(publicDir, archivoJson);
     const rutaQR = path.join(publicDir, archivoQRNuevo);
 
-    fs.writeFileSync(rutaJson, JSON.stringify(datos, null, 2), 'utf-8');
+    // Guardar archivo JSON
+    fs.writeFileSync(rutaJson, JSON.stringify(datosJSON, null, 2), 'utf-8');
 
-    const contenidoQR = `idReserva: ${idReserva}, Monto: ${monto}, Referencia: ${referencia}, Fecha: ${fecha}`;
+    // Crear el contenido del QR
+    const contenidoQR = `idReserva:${reservaId}; monto:${monto}; referencia:${referencia}; fecha:${fecha}`;
     await QRCode.toFile(rutaQR, contenidoQR);
 
     const buffer = fs.readFileSync(rutaQR);
     const base64 = buffer.toString('base64');
-
-    setTimeout(() => {
-      try {
-        if (fs.existsSync(rutaQR)) fs.unlinkSync(rutaQR);
-        if (fs.existsSync(rutaJson)) fs.unlinkSync(rutaJson);
-        console.log(`Archivos eliminados automáticamente: ${rutaQR}, ${rutaJson}`);
-      } catch (err) {
-        console.error('Error al eliminar archivos temporales:', err);
-      }
-    }, 3 * 60 * 1000); // 3 minutos
 
     return res.json({
       mensaje: 'QR generado correctamente',
@@ -101,6 +101,6 @@ export const generarQR = async (req: Request, res: Response, next: NextFunction)
 
   } catch (error) {
     console.error('Error al generar QR:', error);
-    next(error); // ✅ Llama a next para pasar errores a Express
+    return res.status(500).json({ error: 'Error interno al generar el QR.' });
   }
 };

@@ -1,15 +1,15 @@
 import fs from 'fs';
 import path from 'path';
 
-// Ruta pública donde se almacenan los archivos QR y JSON
-const publicDir = path.join(process.cwd(), 'public', 'qr'); // Carpeta pública accesible
+const publicDir = path.join(process.cwd(), 'public', 'qr');
 
+// ✅ Valida si existe el archivo JSON y extrae referencia
 export function validarQR(nombreArchivoQR: string) {
   try {
     if (!fs.existsSync(publicDir)) {
       return {
         valido: false,
-        errores: [`La carpeta pública no existe: ${publicDir}`]
+        errores: [`❌ Carpeta QR no encontrada: ${publicDir}`],
       };
     }
 
@@ -19,74 +19,74 @@ export function validarQR(nombreArchivoQR: string) {
     if (!fs.existsSync(rutaJson)) {
       return {
         valido: false,
-        errores: [`No se encontró el archivo JSON del QR: ${rutaJson}`]
+        errores: [`❌ No se encontró el archivo JSON del QR: ${rutaJson}`],
       };
     }
 
-    const data = JSON.parse(fs.readFileSync(rutaJson, 'utf-8'));
+    const raw = fs.readFileSync(rutaJson, 'utf-8');
+    const data = JSON.parse(raw);
 
     if (!data.referencia) {
       return {
         valido: false,
-        errores: ['El archivo JSON no contiene un código de referencia válido.']
+        errores: [`❌ El JSON no contiene la propiedad "referencia".`],
       };
     }
 
     return {
       valido: true,
       referencia: data.referencia,
-      datos: data
+      datos: data,
     };
-  } catch (err: any) {
-    console.error('Error en validarQR:', err);
+  } catch (error: any) {
+    console.error("❌ Error en validarQR:", error);
     return {
       valido: false,
-      errores: [`Error al validar QR: ${err.message}`]
+      errores: [`❌ Excepción: ${error.message}`],
     };
   }
 }
 
+// ✅ Busca si ya existe un QR generado para una reserva específica
 export function buscarQRPorReserva(idReserva: number) {
   try {
     if (!fs.existsSync(publicDir)) {
       return {
         encontrado: false,
-        errores: [`La carpeta pública no existe: ${publicDir}`]
+        errores: [`❌ Carpeta QR no encontrada: ${publicDir}`],
       };
     }
 
-    const archivos = fs.readdirSync(publicDir).filter(file => file.endsWith('.json'));
+    const archivos = fs.readdirSync(publicDir).filter(f => f.endsWith('.json'));
 
-    for (let archivo of archivos) {
-      const rutaJson = path.join(publicDir, archivo);
-
+    for (const archivo of archivos) {
+      const ruta = path.join(publicDir, archivo);
       try {
-        const contenido = JSON.parse(fs.readFileSync(rutaJson, 'utf-8'));
-
-        if (contenido.idReserva === String(idReserva)) {
+        const json = JSON.parse(fs.readFileSync(ruta, 'utf-8'));
+        if (json.idReserva === String(idReserva)) {
           const archivoQR = archivo.replace('.json', '.png');
           return {
             encontrado: true,
             archivoQR,
             archivoJSON: archivo,
-            referencia: contenido.referencia
+            referencia: json.referencia
           };
         }
-      } catch (error: any) {
-        console.error(`Error al leer el archivo ${archivo}:`, error);
-        // Continúa con los siguientes archivos
+      } catch (err) {
+        console.error(`⚠️ Error al leer JSON ${archivo}:`, err);
       }
     }
 
     return {
       encontrado: false,
-      errores: [`No se encontró un QR asociado a la reserva ${idReserva}`]
+      errores: [`⚠️ No se encontró QR vinculado a la reserva ${idReserva}`],
     };
+
   } catch (err: any) {
-    console.error('Error en buscarQRPorReserva:', err);
+    console.error("❌ Error general en buscarQRPorReserva:", err);
     return {
       encontrado: false,
-      errores: [`Error general al buscar el QR: ${err.message}`]
+      errores: [`❌ Excepción: ${err.message}`],
     };
   }
 }
