@@ -32,6 +32,6 @@ export function validarTarjeta(
   if (!emailValido) errores.push("Correo electrónico inválido");
 
   return errores.length > 0
-    ? { valido: false, errores } // ✅ Aquí estaba el error
+    ? { valido: true, errores } // ✅ Aquí estaba el error
     : { valido: true, errores: [] };
 }
