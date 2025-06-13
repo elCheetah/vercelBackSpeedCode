@@ -7,7 +7,23 @@ export const asignarConductoresService = async (
   // 1. Verificar que exista la reserva
   const reserva = await prisma.reserva.findUnique({ where: { idReserva } });
   if (!reserva) throw new Error('RESERVA_NO_ENCONTRADA');
+    // Nueva verificación: si ya tiene conductores asignados
 
+     const driverExistente = await prisma.driver.findUnique({
+    where: { idUsuario: reserva.idCliente },
+   });
+
+if (driverExistente) {
+  const yaAsignados = await prisma.usuarioDriver.findMany({
+    where: {
+      idDriver: driverExistente.idDriver,
+    },
+  });
+
+  if (yaAsignados.length > 0) {
+    throw new Error('RESERVA_YA_TIENE_CONDUCTORES');
+  }
+}
   // 2. Buscar o crear el driver basado en el cliente
   let driver = await prisma.driver.findUnique({
     where: { idUsuario: reserva.idCliente },
