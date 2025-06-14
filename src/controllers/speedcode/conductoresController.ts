@@ -7,7 +7,9 @@ import {
 } from '../../services/speedcode/conductoresService';
 
 export const asignarConductores = async (req: Request, res: Response): Promise<any> => {
+  console.log('REQ.BODY en producción:', req.body);
   const { idReserva, conductores } = req.body;
+
 
   if (!idReserva || !Array.isArray(conductores) || conductores.length === 0) {
     return res.status(400).json({ error: 'Datos incompletos o inválidos' });
